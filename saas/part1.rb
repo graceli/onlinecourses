@@ -23,6 +23,7 @@ def count_words(string)
   return count
 end
 
+
 # Tests
 
 # palindrome?("A man, a plan, a canal -- Panama") # => true
