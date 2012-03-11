@@ -33,7 +33,7 @@ module Enumerable
   def palindrome?
     reversed = []
     self.reverse_each {|i| reversed.push(i)}
-    self.eql?(reversed)
+    self.to_a.eql?(reversed)
   end
 end
 
