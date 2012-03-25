@@ -3,8 +3,9 @@ import os
 import re
 import pprint
 
-email_re = '(\w+)@(\w+).edu'
-# phone_number_re = '([.|\s]*(\()*[2-9][0-8][0-9](-|\)|\)-|\)\s)[2-9][0-9][0-9]-[0-9][0-9][0-9][0-9][.|\s]*)*'
+# does not handle the case where name is followed by some other characters 
+# eg
+email_re = '([\w,.]+)(?<![sS]erver)(?:@|\s@\s|\sat\s)([\w,.]+).[eE][dD][uU]'
 
 # This regular express matches from the test set the following phone number formats:
 # (650)-xxx-yyyy
@@ -45,7 +46,9 @@ def process_file(name, f):
     for line in f:
         matches = re.findall(email_re,line)
         for m in matches:
+            # Get the part of the string 
             email = '%s@%s.edu' % m
+            # print "MATCHED", email
             res.append((name,'e',email))
 
         matches = re.findall(phone_number_re,line)    
