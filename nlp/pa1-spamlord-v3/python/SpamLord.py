@@ -5,6 +5,20 @@ import pprint
 
 # does not handle the case where name is followed by some other characters 
 # TODO break up the RE as in discussion advice
+# domain_re = 
+# subdomain_re = 
+# name_re = 
+# at_re = 
+
+# An oversimplified and likely incorrect python example.  :)
+
+# tld_list = ['edu', 'com']
+# tld_re = r'(?:%s)' % '|'.join(tld_list)
+# subdomain_re = r'(?:[a-z]+\.)+'
+# name_re = r'[a-z]+'
+# 
+# mail_re = r'(%s)@(%s%s)' % (name_re, subdomain_re, tld_re)
+
 email_re = '([\w,.]+)(?<![sS]erver)(?:@|\s@\s|\sat\s)([\w,.]+).[eE][dD][uU]'
 
 # This regular express matches from the test set the following phone number formats:
@@ -44,6 +58,7 @@ though StringIO should support most everything.
 def process_file(name, f):
     # note that debug info should be printed to stderr
     # sys.stderr.write('[process_file]\tprocessing file: %s\n' % (path))
+    # COMPILE the REs
     res = []
     for line in f:
         matches = re.findall(email_re,line)
@@ -51,6 +66,8 @@ def process_file(name, f):
             # Get the part of the string 
             email = '%s@%s.edu' % m
             # print "MATCHED", email
+            # To handle the case d-l-w-h-@-s-t-a-n-f-o-r-d-.-e-d-u
+            # match the exact email and replace the dashes with empty str
             res.append((name,'e',email))
 
         matches = re.findall(phone_number_re,line)    
