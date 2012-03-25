@@ -4,7 +4,7 @@ import re
 import pprint
 
 # does not handle the case where name is followed by some other characters 
-# eg
+# TODO break up the RE as in discussion advice
 email_re = '([\w,.]+)(?<![sS]erver)(?:@|\s@\s|\sat\s)([\w,.]+).[eE][dD][uU]'
 
 # This regular express matches from the test set the following phone number formats:
@@ -16,6 +16,8 @@ email_re = '([\w,.]+)(?<![sS]erver)(?:@|\s@\s|\sat\s)([\w,.]+).[eE][dD][uU]'
 # There are still a couple of FP and FN 
 # TODO look at the files and see what else I'm not capturing
 # TODO refactor the re to make it less confusing 
+# TODO Fix matches like this 
+# <a href="courses/ling289/ling289-2007-syllabus.htm">
 phone_number_re = "\(*([2-9][0-8][0-9])[\)|-|\)-|\) ][^0-9]*([2-9][0-9][0-9])-([0-9][0-9][0-9][0-9])"
 
 """ 
