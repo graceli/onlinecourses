@@ -11,7 +11,7 @@
 
 using namespace std;
 
-int merge(vector<int> &array, int low, int mid, int high){ 
+long int merge_and_count_split(vector<int> &array, int low, int mid, int high){ 
     //create an new buffer
     //copy array into new buffer
     vector<int> buffer(array);
@@ -21,7 +21,7 @@ int merge(vector<int> &array, int low, int mid, int high){
     int right_half = mid+1;
     int merged = low;
     
-    int num_inversions = 0;
+    long int num_inversions = 0;
     
     while(left_half <= mid && right_half <= high){
         if(buffer[left_half] < buffer[right_half]){
@@ -32,7 +32,7 @@ int merge(vector<int> &array, int low, int mid, int high){
             //is greater than the left half
             // mid - left_half is the number of elements remaining in the left half 
             // that is not yet merged into the final array yet.
-            num_inversions += (mid - left_half);
+            num_inversions += (mid - left_half) + 1;
             array[merged] = buffer[right_half];
             right_half++;
         }
@@ -59,37 +59,41 @@ void print_array(vector<int> &array){
     cout << endl;
 }
 
-int merge_sort(vector<int> &array, int low, int high) {
+long int count_inversions(vector<int> &array, int low, int high) {
     //base case
     if(high <= low)
-        return;
+        return 0;
     
-    // int mid = (low + high) / 2;
     int mid = low + (high - low) / 2;
+  
+    //count inversions in left half
+    long int count_left = count_inversions(array, low, mid);
     
-    //sort left half
-    int count_left = merge_sort(array, low, mid);
+    //count inversions right half
+    long int count_right = count_inversions(array, mid+1, high);
     
-    //sort right half
-    int count_right = merge_sort(array, mid+1, high);
-    
-    //merge left and right
-    int count_split = merge(array, low, mid, high);
+    //count split inversions while merging left and right
+    long int count_split = merge_and_count_split(array, low, mid, high);
     
     return count_left + count_right + count_split;
 }
 
 int main() {
-    // can treat pointers as iterators
-    int a[] = {10,2,3,4,20,6,8,8,9,1};
-    int length = sizeof(a)/sizeof(int);
+    vector<int> array;
     
-    vector<int> array(a, a + length);
+    // read in array through stdin
+    int number;
+    while (cin >> number) {
+        array.push_back(number);
+    }
     
-    print_array(array);
-    int num_inversions = merge_sort(array, 0, length-1);
+    //use a long int because the 32 bit int overflows
+    //alternatively could have used unsigned int
+    //http://en.wikipedia.org/wiki/Integer_(computer_science)
+    long int num_inversions = count_inversions(array, 0, array.size()-1);
     cout << "total number of inversions in array is " << num_inversions << endl;
-    print_array(array);    
+
+    return 0;
 }
 
 
