@@ -8,19 +8,22 @@ fun same_string(s1 : string, s2 : string) =
 
 (* put your solutions for problem 1 here *)
 
-fun all_except_option (string, string_list) =
-    let
-	fun string_list_option_to_string_list string_list_option =
-	    case string_list_option of
-		NONE => []
-	     | SOME str => str
-    in
-	case string_list of
-	    [] => NONE
-	  | head::tail => if same_string(string, head) 
-			      then SOME tail
-			      else SOME (head::string_list_option_to_string_list(all_except_option(string, tail)))
-    end
+fun all_except_option (string_list, string) =
+    case string_list of
+	[] => NONE
+      | head::tail => if same_string(head, string) 
+		      then SOME tail
+		      else
+			  case all_except_option(tail, string) of
+				  NONE => NONE
+				| SOME str_list => SOME (head::str_list)
+
+fun get_substitutions1 (string_list_list, string) =
+    case string_list_list of
+	[] => []
+      | head_list::tail_list_list => case all_except_option(head_list, string) of 
+					 NONE => get_substitutions1(tail_list_list, string)
+				       | SOME str_list => str_list @ get_substitutions1(tail_list_list, string)
 
 (* you may assume that Num is always used with values 2, 3, ..., 10
    though it will not really come up *)
