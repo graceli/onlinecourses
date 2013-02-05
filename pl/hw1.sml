@@ -107,12 +107,9 @@ fun number_before_reaching_sum (sum : int, numbers : int list) =
     let
 	val sum_diff = sum - hd numbers;
     in
-	if numbers = []
-	then 0
-	else 
-	    if sum_diff <= 0 
-	    then 0 
-	    else 1 + number_before_reaching_sum (sum_diff, tl numbers)
+	if sum_diff <= 0 
+	then 0 
+	else 1 + number_before_reaching_sum (sum_diff, tl numbers)
     end
 
 fun what_month (day_of_year : int) =
@@ -138,3 +135,5 @@ fun oldest (dates : (int*int*int) list) =
 	    then oldest_date
 	    else SOME (hd dates)
 	end
+
+(* Do challenge problems at some point *)
