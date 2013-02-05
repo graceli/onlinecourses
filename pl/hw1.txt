@@ -1,4 +1,4 @@
-fun is_older (date1 : int*int*int, date2 : int*int*int) =
+/* fun is_older (date1 : int*int*int, date2 : int*int*int) =
 let 
     val year1 = (#1 date1);
     val year2 = (#1 date2);
@@ -19,6 +19,7 @@ in
 	 else false
     else false
 end
+*/
 
 fun number_in_month (dates : (int*int*int) list, month : int) =
     if null dates
