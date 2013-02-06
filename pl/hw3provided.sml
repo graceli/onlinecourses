@@ -51,6 +51,50 @@ val longest_capitalized = longest_string1 o only_capitals;
 
 val rev_string = String.implode o List.rev o String.explode;
 
+(* Q7 *)
+fun first_answer f = 
+    fn list => case list of 
+		   [] => raise NoAnswer
+		 | xs::xs' => case f xs of 
+				  NONE => first_answer f xs'
+				| SOME result_val => result_val
+
+(* This is a bad solution to all_answers *)
+(* It has duplicate cases handled in accumulator when all_answers returns NONE *)
+(* I'm sure there is a better solution but I just haven't thought of it yet *)
+fun all_answers f =
+    fn list => case list of
+		   [] => SOME []
+		 | xs::xs' => 
+		   let
+		       fun accumulator (acc, lst_opt_lst) =
+			   case lst_opt_lst of
+			       [] => SOME acc
+			     | lst_opt::rest => case lst_opt of
+						    NONE => NONE
+						  | SOME v => accumulator (acc @ v, rest)
+		   in
+		       case f xs of
+			   NONE => NONE
+			 | SOME result_val => accumulator (result_val, [all_answers f xs'])
+		   end
+
+(* Q9 *)
+val count_wildcards = g (fn x => 1) (fn y => 0);
+
+val count_wild_and_variable_lengths = g (fn x => 1) (fn y => String.size y);
+
+fun count_some_var (string, pattern) =
+    g (fn x => 0) (fn y => if y = string then 1 else 0) pattern
+
+(* Q10 *)
+
+(* Q11 *)
+
+(* This solution should work if match was properly defined *)
+(* fun first_match (value, pattern_list) =
+    first_answer (match value) pattern_list
+    handle NoAnswer => NONE; *)
 
 (**** for the challenge problem only ****)
 datatype typ = Anything
