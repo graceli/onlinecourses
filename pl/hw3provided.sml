@@ -1,4 +1,4 @@
-(* Coursera Programming Languages, Homework 3, Provided Code *)
+(* Coursera Programming Languages, Homework 3 *)
 
 exception NoAnswer
 
@@ -26,7 +26,14 @@ fun g f1 f2 p =
 	  | _                 => 0
     end
 
-(**** My Solution ****)
+(**** for the challenge problem only ****)
+datatype typ = Anything
+	     | UnitT
+	     | IntT
+	     | TupleT of typ list
+	     | Datatype of string
+
+(**** Solutions ****)
 fun only_capitals (string_list) =
     List.filter (fn s => Char.isUpper(String.sub(s, 0))) string_list
 
@@ -59,25 +66,18 @@ fun first_answer f =
 				  NONE => first_answer f xs'
 				| SOME result_val => result_val
 
-(* This is a bad solution to all_answers *)
-(* It has duplicate cases handled in accumulator when all_answers returns NONE *)
-(* I'm sure there is a better solution but I just haven't thought of it yet *)
+(* Q8 *)
 fun all_answers f =
-    fn list => case list of
-		   [] => SOME []
-		 | xs::xs' => 
-		   let
-		       fun accumulator (acc, lst_opt_lst) =
-			   case lst_opt_lst of
-			       [] => SOME acc
-			     | lst_opt::rest => case lst_opt of
-						    NONE => NONE
-						  | SOME v => accumulator (acc @ v, rest)
-		   in
-		       case f xs of
-			   NONE => NONE
-			 | SOME result_val => accumulator (result_val, [all_answers f xs'])
-		   end
+    fn list => let fun accumulator (acc, lst_opt_lst) =
+		       case lst_opt_lst of
+			   [] => SOME acc
+			 | NONE::rest => NONE
+			 | (SOME v)::rest => accumulator (acc @ v, rest)
+	       in
+		   case list of
+		       [] => SOME []
+		     | xs::xs' => accumulator ([], [f xs] @ [all_answers f xs'])
+	       end
 
 (* Q9 *)
 val count_wildcards = g (fn x => 1) (fn y => 0);
@@ -87,20 +87,53 @@ val count_wild_and_variable_lengths = g (fn x => 1) (fn y => String.size y);
 fun count_some_var (string, pattern) =
     g (fn x => 0) (fn y => if y = string then 1 else 0) pattern
 
+
 (* Q10 *)
+(* Returns true iff all the variables appearing in the pattern are distinct from each other *)
+fun check_pat pattern =
+    let
+	fun get_variables (p, acc) =
+	    case p of
+		Wildcard          => []
+	      | Variable x        => [x] @ acc
+	      | TupleP ps         => List.foldl get_variables acc ps
+	      | ConstructorP(_,p) => get_variables (p, acc)
+	      | _                 => []
+
+	fun no_repeats (string_list : string list) =
+	    case string_list of
+		[] => true
+	     |  xs::rest => not (List.exists (fn y => xs = y) rest) andalso no_repeats (rest)
+
+	val variables = get_variables (pattern, []);
+    in
+	no_repeats (variables)
+    end
 
 (* Q11 *)
+fun match (vp_pair) = 
+    case (vp_pair) of
+	(_, Wildcard) => SOME []
+      | (v, Variable s) => SOME [(s, v)]
+      | (Unit, UnitP) => SOME []
+      | (Const i, ConstP j) => SOME []
+      | (Tuple vs, TupleP ps) => if List.length(vs) = List.length(ps)
+				 then all_answers match (ListPair.zip (vs, ps))
+				 else NONE								
+      | (Constructor (s2, v), ConstructorP (s1, p)) => if s1 = s2 
+						       then match (v, p) 
+						       else NONE
+      | (_,_) => NONE
+ 
+(* Q12 *)
+fun first_match (value, pattern_list) =
+    let val first_match_bindings = first_answer match (List.map (fn x => (value, x)) pattern_list); in SOME first_match_bindings end
+    handle NoAnswer => NONE
 
-(* This solution should work if match was properly defined *)
-(* fun first_match (value, pattern_list) =
-    first_answer (match value) pattern_list
-    handle NoAnswer => NONE; *)
 
-(**** for the challenge problem only ****)
-datatype typ = Anything
-	     | UnitT
-	     | IntT
-	     | TupleT of typ list
-	     | Datatype of string
-
-(**** you can put all your code here ****)
+(*
+review the course notes for section 3
+review nested patterns again ...
+what's good ML style : this ? http://www.cs.cornell.edu/courses/cs312/2008sp/handouts/style.htm
+why doesn't calling a curried function with tuple parameters work?  I think this was explained in the lectures but I can't remember
+*)
