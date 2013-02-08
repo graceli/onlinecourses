@@ -58,9 +58,15 @@ count_wildcards (ConstructorP ("a", TupleP ([Wildcard, ConstP 1])))=1;
 
 count_wild_and_variable_lengths (ConstructorP ("a", TupleP ([Wildcard, TupleP([Variable ("a"), Variable ("abc")])])))=5;
 
+print "Tests for check_pat\n";
+
 check_pat (TupleP[Variable "a", Variable "b", Variable "c", Variable "d", TupleP[Variable "a", Variable "b", TupleP[Variable "e", Variable "f"]]]) = false;
 
 check_pat(TupleP[Variable "a", Variable "b", Variable "c", Variable "d", TupleP[Variable "z", Variable "g", TupleP[Variable "e", Variable "f"]]]) = true;
+
+check_pat(TupleP[TupleP[TupleP[Variable "x", ConstructorP ("wild", Wildcard)], Wildcard],Variable "x"]) = false;
+
+print "Tests for matching\n";
 
 (* Patterns *)
 val test_pattern1 = Variable "a";
@@ -75,12 +81,14 @@ val test_value3 = Constructor ("a", Unit);
 match (test_value1, test_pattern1) = SOME [("a",test_value1)];
 match (test_value2, test_pattern2) = SOME [("a", Unit), ("b", Const 1)];
 match (test_value3, test_pattern3) = SOME [("b", Unit)];
+match (Const 17, ConstP 17) = SOME [];
 
 (* Non-matching cases *)
 val test_value_nomatch2 = Tuple[Unit, Unit];
 val test_value_nomatch3 = Constructor ("b", Unit);
 match (test_value_nomatch2, test_pattern2) = NONE;
 match (test_value_nomatch3, test_pattern3) = NONE;
+match (Const 17, ConstP 4) = NONE;
 
 print "Tests for first_match\n";
 first_match (test_value1, [test_pattern1, test_pattern3, TupleP [Variable "z"]]) = SOME [("a", Const 17)];

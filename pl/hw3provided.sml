@@ -94,11 +94,11 @@ fun check_pat pattern =
     let
 	fun get_variables (p, acc) =
 	    case p of
-		Wildcard          => []
+		Wildcard          => acc
 	      | Variable x        => [x] @ acc
 	      | TupleP ps         => List.foldl get_variables acc ps
 	      | ConstructorP(_,p) => get_variables (p, acc)
-	      | _                 => []
+	      | _                 => acc
 
 	fun no_repeats (string_list : string list) =
 	    case string_list of
@@ -116,7 +116,7 @@ fun match (vp_pair) =
 	(_, Wildcard) => SOME []
       | (v, Variable s) => SOME [(s, v)]
       | (Unit, UnitP) => SOME []
-      | (Const i, ConstP j) => SOME []
+      | (Const i, ConstP j) => if i = j then SOME [] else NONE
       | (Tuple vs, TupleP ps) => if List.length(vs) = List.length(ps)
 				 then all_answers match (ListPair.zip (vs, ps))
 				 else NONE								
@@ -126,9 +126,10 @@ fun match (vp_pair) =
       | (_,_) => NONE
  
 (* Q12 *)
-fun first_match (value, pattern_list) =
-    let val first_match_bindings = first_answer match (List.map (fn x => (value, x)) pattern_list); in SOME first_match_bindings end
-    handle NoAnswer => NONE
+fun first_match value =
+    fn pattern_list =>
+       let val first_match_bindings = first_answer match (List.map (fn x => (value, x)) pattern_list); in SOME first_match_bindings end
+       handle NoAnswer => NONE
 
 
 (*
