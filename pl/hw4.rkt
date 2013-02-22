@@ -47,3 +47,16 @@
                                (cons "dan.jpg" (lambda () (f 1)))
                                (cons "dog.jpg" (lambda () (f 0)))))])
   (lambda () (f 0))))
+
+
+; Q7
+; The sample solution is around 4 lines ... 
+; which means they probably used a couple of let expressions
+(define (stream-add-zero s)
+  (lambda () (cons (cons 0 (car (s))) (stream-add-zero (cdr (s))))))
+
+; Q8
+
+; Q9
+
+; Q10
