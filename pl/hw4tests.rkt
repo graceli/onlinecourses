@@ -66,3 +66,12 @@
 ; similar to previous but uses only two files and one position on the grid
 (define (visual-zero-only)
   (place-repeatedly (open-window) 0.5 (stream-add-zero dan-then-dog) 27))
+
+; Test cases for Q8
+(stream-for-n-steps (cycle-lists '(1 2 3) '("a" "b")) 2)
+
+; Test case for Q9
+(vector-assoc 1 (build-vector 2 (lambda (x) (cons 1 x))))
+; expected output '(1 . 0)
+
+

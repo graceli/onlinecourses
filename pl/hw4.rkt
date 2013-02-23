@@ -56,7 +56,21 @@
   (lambda () (cons (cons 0 (car (s))) (stream-add-zero (cdr (s))))))
 
 ; Q8
+(define (cycle-lists xs ys)
+  (letrec ([run-cycle-lists 
+            (lambda (n) 
+                (lambda ()(cons (cons (list-nth-mod xs n) (list-nth-mod ys n)) (run-cycle-lists (+ n 1)))))])
+  (run-cycle-lists 0)))
 
 ; Q9
+(define (vector-assoc v vec)
+  (letrec ([f (lambda (v vec pos)
+                (cond [(and (< pos (vector-length vec)) (pair? (vector-ref vec pos)))
+                                                                               (if (equal? v (car (vector-ref vec pos)))
+                                                                                   (vector-ref vec pos)
+                                                                                   (f v vec (+ pos 1)))]
+                      [(< pos (vector-length vec)) (f v vec (+ pos 1))]
+                      [#t #f]))])
+    (f v vec 0)))
 
 ; Q10
