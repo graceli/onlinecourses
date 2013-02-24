@@ -22,9 +22,9 @@
   (cond [(< n 0) (error "list-nth-mod: negative number")]
         [(null? xs) (error "list-nth-mod: empty list")]
         [#t (let ([i (remainder n (length xs))])
-            (if (= i 0)
-                (car xs)
-                (car (list-tail xs i))))]))
+              (if (= i 0)
+                  (car xs)
+                  (car (list-tail xs i))))]))
 
 ; Q4
 (define (stream-for-n-steps s n)
@@ -38,15 +38,15 @@
   (letrec ([f (lambda (x) (if (= (remainder x 5) 0) 
                               (cons (* -1 x) (lambda () (f (+ x 1)))) 
                               (cons x (lambda () (f (+ x 1))))))])
-  (lambda ()(f 1))))
+    (lambda ()(f 1))))
 
 
 ; Q6
 (define dan-then-dog
   (letrec ([f (lambda (x) (if (= x 0)
-                               (cons "dan.jpg" (lambda () (f 1)))
-                               (cons "dog.jpg" (lambda () (f 0)))))])
-  (lambda () (f 0))))
+                              (cons "dan.jpg" (lambda () (f 1)))
+                              (cons "dog.jpg" (lambda () (f 0)))))])
+    (lambda () (f 0))))
 
 
 ; Q7
@@ -59,18 +59,109 @@
 (define (cycle-lists xs ys)
   (letrec ([run-cycle-lists 
             (lambda (n) 
-                (lambda ()(cons (cons (list-nth-mod xs n) (list-nth-mod ys n)) (run-cycle-lists (+ n 1)))))])
-  (run-cycle-lists 0)))
+              (lambda ()(cons (cons (list-nth-mod xs n) (list-nth-mod ys n)) (run-cycle-lists (+ n 1)))))])
+    (run-cycle-lists 0)))
 
 ; Q9
 (define (vector-assoc v vec)
   (letrec ([f (lambda (v vec pos)
                 (cond [(and (< pos (vector-length vec)) (pair? (vector-ref vec pos)))
-                                                                               (if (equal? v (car (vector-ref vec pos)))
-                                                                                   (vector-ref vec pos)
-                                                                                   (f v vec (+ pos 1)))]
+                       (if (equal? v (car (vector-ref vec pos)))
+                           (vector-ref vec pos)
+                           (f v vec (+ pos 1)))]
                       [(< pos (vector-length vec)) (f v vec (+ pos 1))]
                       [#t #f]))])
     (f v vec 0)))
 
 ; Q10
+
+(define (cached-assoc xs n)
+  (letrec([cache (make-vector n #f)]
+          [pos 0]
+          [f (lambda (v) 
+               (let ([ans (vector-assoc v cache)])
+                 (if ans
+                     ans
+                     (let ([new-ans (assoc v xs)])
+                       (if new-ans
+                           (begin
+                             (vector-set! cache pos new-ans)
+                             (if (< pos (- n 1))
+                                 (set! pos (+ pos 1))
+                                 (set! pos 0))
+                             new-ans)
+                           #f)))))])
+  f))
+  
+  
+  
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
+                     
