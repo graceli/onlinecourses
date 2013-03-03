@@ -5,112 +5,116 @@
 
 (define hw5-tests
   (test-suite
-    "Tests for HW 5"
-  (test-equal? "MUPL list -> Racket list #1"
-    (list (int 3) (int 4) (int 9))
-    (mupllist->racketlist (apair (int 3) (apair (int 4) (apair (int 9) (aunit))))))
-
-  (test-equal? "MUPL list -> Racket list #2"
-    (apair (list (int 42) (var "x")) (apair (list (int 43) (var "y")) (aunit)))
-    (racketlist->mupllist (list (list (int 42) (var "x")) (list (int 43) (var "y"))))
-  )
-
-  (test-equal? "R list -> M list #3"
-   (apair (var "foo") (apair (int 17) (aunit)))
-   (racketlist->mupllist (list (var "foo") (int 17))))
-
-
-   (test-case "List tests"
-         ; racketlist->mupllist
-   (check-equal? (racketlist->mupllist '(1 2 3 4))
-                  (apair 1 (apair 2 (apair 3 (apair 4 (aunit))))) "simple racketlist")
-   (check-equal? (racketlist->mupllist '()) (aunit) "empty racketlist")
+   "Tests for HW 5"
+   (test-equal? "MUPL list -> Racket list #1"
+                (list (int 3) (int 4) (int 9))
+                (mupllist->racketlist (apair (int 3) (apair (int 4) (apair (int 9) (aunit))))))
    
-   ; mupllist->racketlist
-   (check-equal? (mupllist->racketlist (apair 1 (apair 2 (apair 3 (apair 4 (aunit))))))
-                  '(1 2 3 4) "simple mupllist")
-   (check-equal? (mupllist->racketlist (aunit)) '() "empty mupllist")
-   )
-  (test-equal? "Local scoping"
-               (int 2)
-               (eval-exp (mlet "f1"
-                               (fun "f1" "a" (mlet "x" (var "a") (fun "f2" "z" (add (var "x") (int 1)))))
-                               (mlet "f3" (fun "f3" "f" (mlet "x" (int 1729) (call (var "f") (aunit)))) 
-                                     (call (var "f3") (call (var "f1") (int 1)))))))
-
-  (test-equal? "basic-call"
-               (int 43)
-               (eval-exp (call (fun "incr" "x" (add (var "x") (int 1))) (int 42))))
-  
-  (test-equal? "ifgreater with invalid e4"
-               (int 0)
-               (eval-exp (ifgreater (add (int 2) (int 2)) (add (int 2) (int 1)) (add (int 3) (int -3)) (add "wrong" "bad"))))
-
-  (test-equal? "fst/snd test"
-     (apair (int 1) (int 4))
-     (eval-exp (apair (fst (apair (int 1) (int 2)))
-                 (snd (apair (int 3) (int 4))) )))
-
-  (test-equal? "Sum over list"
-     (int 6)
-     (eval-exp (mlet "fnc"
-       (fun "f1" "x" 
-            (ifgreater (isaunit (var "x")) (int 0) 
-                       (int 0) 
-                       (add (fst (var "x")) (call (var "f1") (snd (var "x"))))))
-       (call (var "fnc") (apair (int 1) (apair (int 2) (apair (int 3) (aunit))))))))
-
-  (test-equal? "ifaunit test #1"
-   (int 2)
-   (eval-exp (ifaunit (aunit) (int 2) (int 3))))
-
-  (test-equal? "ifaunit test #2"
-   (int 3)
-   (eval-exp (ifaunit (int 3) (int 2) (int 3))))
-  
+   (test-equal? "MUPL list -> Racket list #2"
+                (apair (list (int 42) (var "x")) (apair (list (int 43) (var "y")) (aunit)))
+                (racketlist->mupllist (list (list (int 42) (var "x")) (list (int 43) (var "y"))))
+                )
+   
+   (test-equal? "R list -> M list #3"
+                (apair (var "foo") (apair (int 17) (aunit)))
+                (racketlist->mupllist (list (var "foo") (int 17))))
+   
+   
+   (test-case "List tests"
+              ; racketlist->mupllist
+              (check-equal? (racketlist->mupllist '(1 2 3 4))
+                            (apair 1 (apair 2 (apair 3 (apair 4 (aunit))))) "simple racketlist")
+              (check-equal? (racketlist->mupllist '()) (aunit) "empty racketlist")
+              
+              ; mupllist->racketlist
+              (check-equal? (mupllist->racketlist (apair 1 (apair 2 (apair 3 (apair 4 (aunit))))))
+                            '(1 2 3 4) "simple mupllist")
+              (check-equal? (mupllist->racketlist (aunit)) '() "empty mupllist")
+              )
+   (test-equal? "Local scoping"
+                (int 2)
+                (eval-exp (mlet "f1"
+                                (fun "f1" "a" (mlet "x" (var "a") (fun "f2" "z" (add (var "x") (int 1)))))
+                                (mlet "f3" (fun "f3" "f" (mlet "x" (int 1729) (call (var "f") (aunit)))) 
+                                      (call (var "f3") (call (var "f1") (int 1)))))))
+   
+   (test-equal? "basic-call"
+                (int 43)
+                (eval-exp (call (fun "incr" "x" (add (var "x") (int 1))) (int 42))))
+   
+   (test-equal? "ifgreater with invalid e4"
+                (int 0)
+                (eval-exp (ifgreater (add (int 2) (int 2)) (add (int 2) (int 1)) (add (int 3) (int -3)) (add "wrong" "bad"))))
+   
+   (test-equal? "fst/snd test"
+                (apair (int 1) (int 4))
+                (eval-exp (apair (fst (apair (int 1) (int 2)))
+                                 (snd (apair (int 3) (int 4))) )))
+   
+   (test-equal? "Sum over list"
+                (int 6)
+                (eval-exp (mlet "fnc"
+                                (fun "f1" "x" 
+                                     (ifgreater (isaunit (var "x")) (int 0) 
+                                                (int 0) 
+                                                (add (fst (var "x")) (call (var "f1") (snd (var "x"))))))
+                                (call (var "fnc") (apair (int 1) (apair (int 2) (apair (int 3) (aunit))))))))
+   
+   (test-equal? "ifaunit test #1"
+                (int 2)
+                (eval-exp (ifaunit (aunit) (int 2) (int 3))))
+   
+   (test-equal? "ifaunit test #2"
+                (int 3)
+                (eval-exp (ifaunit (int 3) (int 2) (int 3))))
+   
+   (test-equal? "ifaunit test #3"
+                (int 4)
+                (eval-exp (ifaunit (fst (apair (aunit) (int 0))) (int 4) (int 10))))
+   
    (test-case "mlet"
-    (check-equal? (int 1)
-     (eval-exp (mlet* (cons (cons "x" (int 1)) null) (var "x")))
-     )
-
-    (check-equal? 
-    (int 20)
-     (eval-exp (mlet* (list (cons "f" (int 2)) (cons "y" (int 15))) (add (var "f") (add (var "y") (int 3)))))
-     ))
-
-  (test-case "ifeq"
-    (check-equal? (int 1)
-    (eval-exp (ifeq (int 2) (add (int 1) (int 1)) (int 1) (int 2)))
-    )
-
-    (check-equal? 
-    (int 2)
-    (eval-exp (ifeq (int 2) (add (int 1) (int 2)) (int 1) (int 2)))))
-
-  (test-case "mupl-map"
-    (define addtwo (fun "addone" "x" (add (var "x") (int 2))))
-    (define mupl-map-addtwo (call mupl-map addtwo))
-    (check-equal? (eval-exp (call mupl-map-addtwo (aunit))) (aunit))
-
-    (define my-mupl-list (apair (int 23) (apair (int 42) (aunit))))
-    (define my-answers (apair (int 25) (apair (int 44) (aunit))))
-    (check-equal? (eval-exp (call mupl-map-addtwo my-mupl-list)) my-answers))
-
-  (test-case "mupl-mapAddN"
-    (define input (apair (int 25) (apair (int 44) (aunit))))
-    (define output (apair (int 26) (apair (int 45) (aunit))))
-    (check-equal? (eval-exp (call (call mupl-mapAddN (int 1)) input)) output))
-
-    (check-equal? (eval-exp (call (call mupl-mapAddN (int 7))
-                                  (racketlist->mupllist '())))
+              (check-equal? (int 1)
+                            (eval-exp (mlet* (cons (cons "x" (int 1)) null) (var "x")))
+                            )
+              
+              (check-equal? 
+               (int 20)
+               (eval-exp (mlet* (list (cons "f" (int 2)) (cons "y" (int 15))) (add (var "f") (add (var "y") (int 3)))))
+               ))
+   
+   (test-case "ifeq"
+              (check-equal? (int 1)
+                            (eval-exp (ifeq (int 2) (add (int 1) (int 1)) (int 1) (int 2)))
+                            )
+              
+              (check-equal? 
+               (int 2)
+               (eval-exp (ifeq (int 2) (add (int 1) (int 2)) (int 1) (int 2)))))
+   
+   (test-case "mupl-map"
+              (define addtwo (fun "addone" "x" (add (var "x") (int 2))))
+              (define mupl-map-addtwo (call mupl-map addtwo))
+              (check-equal? (eval-exp (call mupl-map-addtwo (aunit))) (aunit))
+              
+              (define my-mupl-list (apair (int 23) (apair (int 42) (aunit))))
+              (define my-answers (apair (int 25) (apair (int 44) (aunit))))
+              (check-equal? (eval-exp (call mupl-map-addtwo my-mupl-list)) my-answers))
+   
+   (test-case "mupl-mapAddN"
+              (define input (apair (int 25) (apair (int 44) (aunit))))
+              (define output (apair (int 26) (apair (int 45) (aunit))))
+              (check-equal? (eval-exp (call (call mupl-mapAddN (int 1)) input)) output))
+   
+   (check-equal? (eval-exp (call (call mupl-mapAddN (int 7))
+                                 (racketlist->mupllist '())))
                  (aunit) "mapAddN empty list")
-    (check-equal? (eval-exp (call (call mupl-mapAddN (int 7))
-                                  (racketlist->mupllist (list (int 3) (int 4) (int 9)))))
+   (check-equal? (eval-exp (call (call mupl-mapAddN (int 7))
+                                 (racketlist->mupllist (list (int 3) (int 4) (int 9)))))
                  (racketlist->mupllist (list (int 10) (int 11) (int 16))) "mapAddN +7")
    (check-equal? (eval-exp (call (call mupl-mapAddN (int 7))
-                                  (racketlist->mupllist (list (int 3)))))
+                                 (racketlist->mupllist (list (int 3)))))
                  (racketlist->mupllist (list (int 10))) "mapAddN single item list")
-; add
+   ; add
    (check-equal? (eval-exp (add (int 3) (int 4))) (int 7) "simple add")
    (check-equal? (eval-exp (add (add (int 1) (int 2)) (add (int 3) (int 4)))) (int 10) "complex add")
    (check-exn #rx"MUPL" (lambda () (eval-exp (add (int 3) (aunit)))) "add exception")
@@ -168,7 +172,7 @@
    
    ; call
    (check-equal? (eval-exp (mlet "double" (fun "double" "x" (add (var "x") (var "x")))
-                                  (call (var "double") (int 10))))
+                                 (call (var "double") (int 10))))
                  (int 20) "double function, non-recursive")
    (check-equal?
     (eval-exp
@@ -183,7 +187,7 @@
    
    ; else
    (check-exn #rx"MUPL" (lambda () (eval-exp (list (int 1) (int 2)))) "bad expression exception")
-
+   
    ; ifaunit
    (check-equal? (eval-exp (ifaunit (aunit) (add (int 1)(int 2)) (add (int 3)(int 4)))) (int 3) "ifaunit true")
    (check-equal? (eval-exp (ifaunit (int 0) (add (int 1)(int 2)) (add (int 3)(int 4)))) (int 7) "ifaunit false")
@@ -195,7 +199,7 @@
                  (int 1) "single variable mlet* evaluation")
    (check-equal? (eval-exp (mlet* (list (cons "x" (int 1)) (cons "x" (int 2))) (var "x")))
                  (int 2) "shadowing mlet* evaluation")
-  
+   
    ; ifeq
    (check-equal? (eval-exp (ifeq (int 1) (int 1) (int 2) (int 3)))
                  (int 2) "simple ifeq true evaluation")
@@ -205,20 +209,20 @@
                  (int 2) "complex ifeq true evaluation")
    (check-equal? (eval-exp (ifeq (add (int 1)(int 1)) (int 1) (int 2) (int 3)))
                  (int 3) "complex ifeq false evaluation")
-
+   
    ; mupl-map
    (check-equal? (eval-exp
                   (call (call mupl-map (fun #f "x" (add (int 1) (var "x"))))
-                   (apair (int 1) (apair (int 2) (aunit)))))
+                        (apair (int 1) (apair (int 2) (aunit)))))
                  (apair (int 2) (apair (int 3) (aunit))) "map normal list")
    (check-equal? (eval-exp
                   (call (call mupl-map (fun #f "x" (add (int 1) (var "x"))))
-                   (apair (int 1) (aunit))))
+                        (apair (int 1) (aunit))))
                  (apair (int 2) (aunit)) "map single item list")
    (check-equal? (eval-exp
                   (call (call mupl-map (fun #f "x" (add (int 1) (var "x"))))
-                   (aunit)))
+                        (aunit)))
                  (aunit) "map empty list")
-      
-  ))
- (run-tests hw5-tests) 
+   
+   ))
+(run-tests hw5-tests) 

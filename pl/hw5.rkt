@@ -121,8 +121,8 @@
 
 
 ;; Problem 3 -- MUPL macros
-(define (ifaunit e1 e2 e3) 
-  (if (aunit? e1) e2 e3))
+(define (ifaunit e1 e2 e3)
+  (ifgreater (isaunit e1) (int 0) e2 e3))
 
 (define (mlet* lstlst e2)
   (if (null? lstlst)
@@ -133,7 +133,7 @@
         exp)))
 
 (define (ifeq e1 e2 e3 e4)
-  (mlet "_x" e1 (mlet "_y" e2 (ifgreater e1 e2 e4 (ifgreater e2 e1 e4 e3)))))
+  (mlet "_x" e1 (mlet "_y" e2 (ifgreater (var "_x") (var "_y") e4 (ifgreater (var "_y") (var "_x") e4 e3)))))
 
 
 ;; Problem 4 -- Using MUPL
