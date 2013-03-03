@@ -1,6 +1,6 @@
 ;; Programming Languages, Homework 5
-
 #lang racket
+
 (provide (all-defined-out)) ;; so we can put tests in a second file
 
 ;; definition of structures for MUPL programs - Do NOT change
@@ -43,9 +43,13 @@
 ;; DO add more cases for other kinds of MUPL expressions.
 ;; We will test eval-under-env by calling it directly even though
 ;; "in real life" it would be a helper function of eval-exp.
+(define (is-a-mupl-value e)
+  (or (int? e) (closure? e) (aunit? e)))
+
 (define (eval-under-env e env)
   (cond [(var? e) 
          (envlookup env (var-string e))]
+        
         [(add? e) 
          (let ([v1 (eval-under-env (add-e1 e) env)]
                [v2 (eval-under-env (add-e2 e) env)])
@@ -54,8 +58,12 @@
                (int (+ (int-num v1) 
                        (int-num v2)))
                (error "MUPL addition applied to non-number")))]
-        ;; CHANGE add more cases here
-        [(or (int? e) (closure? e) (aunit? e) (apair? e)) e]
+        
+        ; A MUPL value: int, closure or aunit
+        [(is-a-mupl-value e) e]
+        
+        ; A MUPL value: A pair of values
+        [(and (apair? e) (is-a-mupl-value (apair-e1 e)) (is-a-mupl-value (apair-e2 e))) e]
         
         ; Function evalution
         [(fun? e) (closure env e)]
@@ -95,47 +103,46 @@
         [(call? e)(let ([v1 (eval-under-env (call-funexp e) env)]
                         [v2 (eval-under-env (call-actual e) env)])
                     (if (closure? v1)
-                        (let ([f-exp (closure-fun v1)])
+                        (let* ([f-exp (closure-fun v1)]
+                               [env-with-f-args (cons (cons (fun-formal f-exp) v2)(closure-env v1))])
                           (if (equal? (fun-nameopt f-exp) #f)
-                              (eval-under-env (fun-body f-exp) (cons (fun-formal v2)(closure-env v1)))
-                              (eval-under-env (fun-body f-exp) (cons (cons (fun-nameopt f-exp) v1) (cons (cons (fun-formal f-exp) v2)(closure-env v1))))))
-                        (error "Function name did not evaluate to a closure")
-                        ))]
-[#t (error "bad MUPL expression")]))
+                              (eval-under-env (fun-body f-exp) env-with-f-args)
+                              (eval-under-env (fun-body f-exp) (cons (cons (fun-nameopt f-exp) v1) env-with-f-args))))
+                        (error "Function name did not evaluate to a closure")))]
+        
+        [#t (error "bad MUPL expression")]))
 
 ;; Do NOT change
 (define (eval-exp e)
   (eval-under-env e null))
 
-;; Problem 3
 
-(define (ifaunit e1 e2 e3) "CHANGE")
+;; Problem 3 -- MUPL macros
+(define (ifaunit e1 e2 e3) 
+  (if (aunit? e1) e2 e3))
 
-(define (mlet* lstlst e2) "CHANGE")
+(define (mlet* lstlst e2)
+  (if (null? lstlst)
+      e2
+      ; Should this be a letrec? let doesn't work for sure. What was let* again?
+      (let* ([var (car (car lstlst))]
+             [e (cdr (car lstlst))]
+             [exp (mlet var e (mlet* (cdr lstlst) e2))])
+        exp)))
 
-(define (ifeq e1 e2 e3 e4) "CHANGE")
+(define (ifeq e1 e2 e3 e4)
+  (mlet "_x" e1 (mlet "_y" e2 (ifgreater e1 e2 e4 (ifgreater e2 e1 e4 e3)))))
 
-;; Problem 4
 
-(define mupl-map "CHANGE")
+;; Problem 4 -- Using MUPL
+(define mupl-map
+  (fun #f "mupl-fun"
+       (fun "map" "mupl-lst"
+            (ifeq (isaunit (var "mupl-lst")) (int 1)
+                  (aunit)
+                  (apair (call (var "mupl-fun")(fst (var "mupl-lst"))) (call (var "map") (snd (var "mupl-lst"))))))))
 
 (define mupl-mapAddN 
   (mlet "map" mupl-map
         "CHANGE (notice map is now in MUPL scope)"))
 
-;; Challenge Problem
-
-(struct fun-challenge (nameopt formal body freevars) #:transparent) ;; a recursive(?) 1-argument function
-
-;; We will test this function directly, so it must do
-;; as described in the assignment
-(define (compute-free-vars e) "CHANGE")
-
-;; Do NOT share code with eval-under-env because that will make
-;; auto-grading and peer assessment more difficult, so
-;; copy most of your interpreter here and make minor changes
-(define (eval-under-env-c e env) "CHANGE")
-
-;; Do NOT change this
-(define (eval-exp-c e)
-  (eval-under-env-c (compute-free-vars e) null))
