@@ -26,7 +26,7 @@
   (if (null? lst) 
       (aunit)
       (apair (car lst) (racketlist->mupllist (cdr lst)))))
-  
+
 (define (mupllist->racketlist lst)
   (if (aunit? lst)
       null
@@ -73,9 +73,9 @@
            (eval-under-env (mlet-body e) (cons (cons (mlet-var e) v) env)))]
         
         [(apair? e)(let ([v1 (eval-under-env (apair-e1 e) env)]
-                       [v2 (eval-under-env (apair-e2 e) env)])
-                   (apair v1 v2))]
-
+                         [v2 (eval-under-env (apair-e2 e) env)])
+                     (apair v1 v2))]
+        
         [(fst? e)(let ([v (eval-under-env (fst-e e) env)])
                    (if (apair? v)
                        (apair-e1 v)
@@ -90,7 +90,18 @@
                        (if (aunit? v)
                            (int 1)
                            (int 0)))]
-        [#t (error "bad MUPL expression")]))
+        
+        ; evaluates a function call
+        [(call? e)(let ([v1 (eval-under-env (call-funexp e) env)]
+                        [v2 (eval-under-env (call-actual e) env)])
+                    (if (closure? v1)
+                        (let ([f-exp (closure-fun v1)])
+                          (if (equal? (fun-nameopt f-exp) #f)
+                              (eval-under-env (fun-body f-exp) (cons (fun-formal v2)(closure-env v1)))
+                              (eval-under-env (fun-body f-exp) (cons (cons (fun-nameopt f-exp) v1) (cons (cons (fun-formal f-exp) v2)(closure-env v1))))))
+                        (error "Function name did not evaluate to a closure")
+                        ))]
+[#t (error "bad MUPL expression")]))
 
 ;; Do NOT change
 (define (eval-exp e)
