@@ -21,7 +21,6 @@
 (struct closure (env fun) #:transparent) 
 
 ;; Problem 1
-; Racket function that takes a Racket list and produces a MUPL list
 (define (racketlist->mupllist lst)
   (if (null? lst) 
       (aunit)
@@ -43,6 +42,8 @@
 ;; DO add more cases for other kinds of MUPL expressions.
 ;; We will test eval-under-env by calling it directly even though
 ;; "in real life" it would be a helper function of eval-exp.
+
+; Helper function which returns #t if a MUPL value, otherwise #f
 (define (is-a-mupl-value e)
   (or (int? e) (closure? e) (aunit? e)))
 
@@ -65,16 +66,18 @@
         ; A MUPL value: A pair of values
         [(and (apair? e) (is-a-mupl-value (apair-e1 e)) (is-a-mupl-value (apair-e2 e))) e]
         
-        ; Function evalution
+        ; Function evaluation
         [(fun? e) (closure env e)]
         
         ; ifgreater evaluation
         [(ifgreater? e)
          (let ([v1 (eval-under-env (ifgreater-e1 e) env)]
                [v2 (eval-under-env (ifgreater-e2 e) env)])
-           (if (and (int? v1) (int? v2) (> (int-num v1) (int-num v2)))
-               (eval-under-env (ifgreater-e3 e) env)
-               (eval-under-env (ifgreater-e4 e) env)))]
+           (if (and (int? v1) (int? v2))
+               (if (> (int-num v1) (int-num v2))
+                   (eval-under-env (ifgreater-e3 e) env)
+                   (eval-under-env (ifgreater-e4 e) env))
+               (error "Expressions are not integers")))]
         
         [(mlet? e)
          (let ([v (eval-under-env (mlet-e e) env)])
@@ -124,7 +127,6 @@
 (define (mlet* lstlst e2)
   (if (null? lstlst)
       e2
-      ; Should this be a letrec? let doesn't work for sure. What was let* again?
       (let* ([var (car (car lstlst))]
              [e (cdr (car lstlst))]
              [exp (mlet var e (mlet* (cdr lstlst) e2))])
