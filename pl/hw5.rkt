@@ -142,7 +142,9 @@
                   (aunit)
                   (apair (call (var "mupl-fun")(fst (var "mupl-lst"))) (call (var "map") (snd (var "mupl-lst"))))))))
 
-(define mupl-mapAddN 
-  (mlet "map" mupl-map
-        "CHANGE (notice map is now in MUPL scope)"))
+(define mupl-mapAddN
+  (fun #f "num"
+       (fun #f "lst"
+            (mlet "map" mupl-map
+                  (call (call mupl-map (fun #f "i" (add (var "num") (var "i")))) (var "lst"))))))
 
