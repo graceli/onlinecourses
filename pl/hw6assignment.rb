@@ -1,6 +1,7 @@
 # University of Washington, Programming Languages, Homework 6
 
 class MyTetris < Tetris
+
   def initialize
     super
     set_board
@@ -16,16 +17,16 @@ class MyTetris < Tetris
   
   def key_bindings
     super
+    
     # Rotates the keys by 180 degrees
     @root.bind('u', proc {@board.rotate_180})
+    # Cheats
     @root.bind('c', proc {@board.do_cheat})
   end
-  
-
 end
 
 class MyPiece < Piece
-  # class method to choose the next piece
+
   def self.next_piece (board)
     MyPiece.new(All_My_Pieces.sample, board)
   end
@@ -56,6 +57,7 @@ class MyBoard < Board
   def initialize (game)
     super(game)
     @current_block = MyPiece.next_piece(self)
+    @cheat = false
   end
 
   def do_cheat
