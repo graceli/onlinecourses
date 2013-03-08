@@ -4,7 +4,6 @@ class MyTetris < Tetris
   def initialize
     super
     set_board
-    @cheat = false
   end
   
   def set_board
@@ -19,15 +18,10 @@ class MyTetris < Tetris
     super
     # Rotates the keys by 180 degrees
     @root.bind('u', proc {@board.rotate_180})
-    @root.bind('c', proc {self.cheat})
+    @root.bind('c', proc {@board.do_cheat})
   end
   
-  def do_cheat
-    if get_score >= 100
-      @cheat = true
-      update_score (get_score - 100)
-    end
-  end
+
 end
 
 class MyPiece < Piece
@@ -58,28 +52,29 @@ class MyPiece < Piece
 end
 
 class MyBoard < Board
+  
   def initialize (game)
     super(game)
     @current_block = MyPiece.next_piece(self)
   end
 
-  # current_pos holds the intermediate blocks of a piece before they are placed 
-  # in the grid.  If there were any before, they are sent to the piece drawing 
-  # method to be removed and replaced with that of the new position
-  def draw
-    if @game.cheat
-      @cheat_piece = MyPiece.new([[[0,0]]])
-      @game.draw_piece(@cheatpiece, @current_pos)
-    else
-      @current_pos = @game.draw_piece(@current_block, @current_pos)
+  def do_cheat
+    if @score >= 100 and !@cheat
+      @cheat = true
+      @score = @score - 100
     end
   end
-  
+
   # gets the next piece
   def next_piece
-    @current_block = MyPiece.next_piece(self)
+    if @cheat
+      @current_block = MyPiece.new([[[0,0]]], self)
+    else
+      @current_block = MyPiece.next_piece(self)
+    end
+    
     @current_pos = nil
-    @game.cheat = false
+    @cheat = false
   end
   
   # Overrides store_current in superclass to allow pieces with variable sizes.
@@ -91,7 +86,7 @@ class MyBoard < Board
       @grid[current[1]+displacement[1]][current[0]+displacement[0]] = 
       @current_pos[index]
     }
-    # remove_filled
+    remove_filled
     @delay = [@delay - 2, 80].max
   end
 
