@@ -1,4 +1,5 @@
 # University of Washington, Programming Languages, Homework 6
+require_relative "./hw6provided"
 
 class MyTetris < Tetris
 
@@ -48,8 +49,7 @@ class MyPiece < Piece
                   rotations([[0, 0], [0, 1], [1, 1]]),  # Short L
                   [[[0, 0], [-1, 0], [1, 0], [2, 0], [3, 0]], # new long (only needs two)
                    [[0, 0], [0, -1], [0, 1], [0, 2], [0, 3]]],
-                  rotations([[0, 0], [0, -1], [0, 1], [1, 1], [1, 0]]), # new square
-                  rotations([[0, 0], [0, -1], [0, 1], [-1, 1], [-1, 0]])] # inverted new square
+                  rotations([[0, 0], [0, -1], [0, 1], [1, 1], [1, 0]])] # new square
 end
 
 class MyBoard < Board
