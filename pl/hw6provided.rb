@@ -58,7 +58,6 @@ class Piece
       @base_position[0] += delta_x
       @base_position[1] += delta_y
       @rotation_index = (@rotation_index + delta_rotation) % @all_rotations.size
-      puts @rotation_index
     end
     moved
   end
