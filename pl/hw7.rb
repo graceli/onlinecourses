@@ -162,6 +162,10 @@ class Intersect < GeometryExpression
     @e1 = e1
     @e2 = e2
   end
+
+  def preprocess_prog
+    # return a new instance of the class which is the result of preprocessing self
+  end
 end
 
 class Let < GeometryExpression
@@ -172,6 +176,10 @@ class Let < GeometryExpression
     @e1 = e1
     @e2 = e2
   end
+
+  def preprocess_prog
+    # return a new instance of the class which is the result of preprocessing self
+  end
 end
 
 class Var < GeometryExpression
@@ -179,6 +187,10 @@ class Var < GeometryExpression
   # override any methods
   def initialize s
     @s = s
+  end
+
+  def preprocess_prog
+    # return a new instance of the class which is the result of preprocessing self
   end
 end
 
@@ -189,5 +201,9 @@ class Shift < GeometryExpression
     @dx = dx
     @dy = dy
     @e = e
+  end
+
+  def preprocess_prog
+    # return a new instance of the class which is the result of preprocessing self
   end
 end

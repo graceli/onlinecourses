@@ -201,7 +201,8 @@ fun eval_prog (e,env) =
 					    NoPoints => NoPoints
 					  | Point (x, y) => Point (x + deltaX, y + deltaY)
 					  | Line (m, b) => Line (m, b + deltaY - m*deltaX)
-					  | _ => v
+					  | VerticalLine (x) => VerticalLine(x + deltaX)
+					  | LineSegment (x1, y1, x2, y2) => LineSegment(x1 + deltaX, y1 + deltaY, x2 + deltaX, y2 + deltaY)
 				    end
 
 fun flip_line_segment (x1, y1, x2, y2) =
