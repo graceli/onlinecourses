@@ -117,6 +117,18 @@ class Point < GeometryValue
     @x = x
     @y = y
   end
+  
+  def eval_prog env 
+    self # all values evaluate to self
+  end
+  
+  def preprocess_prog
+    self # no pre-processing to do here
+  end
+  
+  def shift(dx,dy)
+    Point.new(@x + dx, @y + dy)
+  end
 end
 
 class Line < GeometryValue
@@ -127,6 +139,19 @@ class Line < GeometryValue
     @m = m
     @b = b
   end
+  
+  def eval_prog env 
+    self # all values evaluate to self
+  end
+  
+  def preprocess_prog
+    self # no pre-processing to do here
+  end
+  
+  def shift(dx,dy)
+    # Line (m, b) => Line (m, b + deltaY - m*deltaX)
+    Line.new(@m, @b + dy - @m*dx)
+  end
 end
 
 class VerticalLine < GeometryValue
@@ -135,6 +160,19 @@ class VerticalLine < GeometryValue
   attr_reader :x
   def initialize x
     @x = x
+  end
+  
+  def eval_prog env 
+    self # all values evaluate to self
+  end
+  
+  def preprocess_prog
+    self # no pre-processing to do here
+  end
+  
+  def shift(dx,dy)
+    # Line (m, b) => Line (m, b + deltaY - m*deltaX)
+    VerticalLine.new(@x + dx)
   end
 end
 
@@ -151,6 +189,43 @@ class LineSegment < GeometryValue
     @x2 = x2
     @y2 = y2
   end
+  
+  def eval_prog env 
+    self # all values evaluate to self
+  end
+  
+  def preprocess_prog
+    if real_close_point(x1, y1, x2, y2)
+      Point.new(x1, y1)
+    else
+      if real_close(x1, x2)
+        if y1 < y2
+          LineSegment.new(x1, y1, x2, y2)
+        else 
+          LineSegment.new(x2, y2, x1, y1)
+        end
+      else 
+        if x1 < x2
+          LineSegment.new(x1, y1, x2, y2)
+        else 
+          LineSegment.new(x2, y2, x1, y1)
+        end
+      end
+    end
+  end
+  
+  def shift(dx,dy)
+    LineSegment.new(@x1 + dx, @y1 + dy, @x2 + dx, @y2 + dy)
+  end
+  
+  # some helper methods that may be generally useful
+  def real_close(r1,r2) 
+      (r1 - r2).abs < GeometryExpression::Epsilon
+  end
+  
+  def real_close_point(x1,y1,x2,y2) 
+      real_close(x1,x2) && real_close(y1,y2)
+  end
 end
 
 # Note: there is no need for getter methods for the non-value classes
@@ -165,6 +240,11 @@ class Intersect < GeometryExpression
 
   def preprocess_prog
     # return a new instance of the class which is the result of preprocessing self
+    self
+  end
+  
+  def eval_prog (env)
+    self
   end
 end
 
@@ -179,6 +259,13 @@ class Let < GeometryExpression
 
   def preprocess_prog
     # return a new instance of the class which is the result of preprocessing self
+    Let.new(@s, @e1.preprocess_prog, @e2.preprocess_prog)
+  end
+
+  def eval_prog (env)
+    # add e1 to env and call eval on e2 with the new env
+    env.push([@s, @e1]) 
+    @e2.eval_prog(env)
   end
 end
 
@@ -191,6 +278,17 @@ class Var < GeometryExpression
 
   def preprocess_prog
     # return a new instance of the class which is the result of preprocessing self
+    self
+  end
+  
+  def eval_prog (env)
+    result = env.select {|pair| pair[0] == @s}
+    if not result.empty?
+      result[0][1]
+    else
+      nil
+      # raise an exception?
+    end
   end
 end
 
@@ -205,5 +303,11 @@ class Shift < GeometryExpression
 
   def preprocess_prog
     # return a new instance of the class which is the result of preprocessing self
+    Shift.new @dx, @dy, @e.preprocess_prog
+  end
+  
+  def eval_prog (env)
+    value = @e.eval_prog(env)
+    value.shift(@dx, @dy)
   end
 end
