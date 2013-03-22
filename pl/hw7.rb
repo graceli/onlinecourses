@@ -34,7 +34,7 @@ class GeometryValue < GeometryExpression
   # do *not* change methods in this class definition
   # you can add methods if you wish
 
-  private
+  public
   # some helper methods that may be generally useful
   def real_close(r1,r2) 
       (r1 - r2).abs < GeometryExpression::Epsilon
@@ -53,7 +53,6 @@ class GeometryValue < GeometryExpression
       end
   end
 
-  public
   # we put this in this class so all subclasses can inherit it:
   # the intersection of self with a NoPoints is a NoPoints object
   def intersectNoPoints np
@@ -129,6 +128,41 @@ class Point < GeometryValue
   def shift(dx,dy)
     Point.new(@x + dx, @y + dy)
   end
+  
+  def intersect other
+    other.intersectPoint self
+  end
+  
+  def intersectPoint p
+    if real_close_point(@x, @y, p.x, p.y)
+      self
+    else
+      NoPoints.new
+    end
+  end
+  
+  def intersectLine line
+    if real_close(@y, line.m*@x + line.b)
+      self
+    else
+      NoPoints.new
+    end
+  end
+  
+  def intersectVerticalLine vline
+    if real_close(@x, vline.x)
+      self
+    else
+      NoPoints.new
+    end
+  end
+  
+  # if self is the intersection of (1) some shape s and (2) 
+  # the line containing seg, then we return the intersection of the 
+  # shape s and the seg.  seg is an instance of LineSegment
+  def intersectWithSegmentAsLineResult seg
+    seg.intersectPoint self
+  end
 end
 
 class Line < GeometryValue
@@ -152,6 +186,39 @@ class Line < GeometryValue
     # Line (m, b) => Line (m, b + deltaY - m*deltaX)
     Line.new(@m, @b + dy - @m*dx)
   end
+  
+  def intersect other
+    other.intersectLine self
+  end
+  
+  def intersectPoint p
+    p.intersect self
+  end
+  
+  def intersectLine line
+    if real_close(@m,line.m)
+      if real_close(@b,line.b)
+        self
+      else  
+        NoPoints.new
+      end
+    else
+      x = (line.b - @b) / (@m - line.m)
+      y = @m * x + @b
+      Point.new(x, y)
+    end
+  end
+  
+  def intersectVerticalLine vline
+    Point.new(vline.x, @m * vline.x + @b)
+  end
+  
+  # if self is the intersection of (1) some shape s and (2) 
+  # the line containing seg, then we return the intersection of the 
+  # shape s and the seg.  seg is an instance of LineSegment
+  def intersectWithSegmentAsLineResult seg
+    seg.intersectLine self
+  end
 end
 
 class VerticalLine < GeometryValue
@@ -173,6 +240,33 @@ class VerticalLine < GeometryValue
   def shift(dx,dy)
     # Line (m, b) => Line (m, b + deltaY - m*deltaX)
     VerticalLine.new(@x + dx)
+  end
+  
+  def intersect other
+    other.intersectVerticalLine self
+  end
+  
+  def intersectPoint p
+    p.intersect self
+  end
+  
+  def intersectLine line
+    line.intersect self
+  end
+  
+  def intersectVerticalLine vline
+    if real_close(@x, vline.x)
+      self
+    else 
+      NoPoints.new
+    end
+  end
+  
+  # if self is the intersection of (1) some shape s and (2) 
+  # the line containing seg, then we return the intersection of the 
+  # shape s and the seg.  seg is an instance of LineSegment
+  def intersectWithSegmentAsLineResult seg
+    seg.intersectVerticalLine self
   end
 end
 
@@ -219,13 +313,30 @@ class LineSegment < GeometryValue
   end
   
   # some helper methods that may be generally useful
-  def real_close(r1,r2) 
-      (r1 - r2).abs < GeometryExpression::Epsilon
+  # def real_close(r1,r2) 
+  #     (r1 - r2).abs < GeometryExpression::Epsilon
+  # end
+  # 
+  # def real_close_point(x1,y1,x2,y2) 
+  #     real_close(x1,x2) && real_close(y1,y2)
+  # end
+  
+  def intersect other
+    other.intersectLineSegment self
   end
   
-  def real_close_point(x1,y1,x2,y2) 
-      real_close(x1,x2) && real_close(y1,y2)
+  def intersectPoint p
+    self
   end
+  
+  def intersectLine line
+    self
+  end
+  
+  def intersectVerticalLine vline
+    self
+  end
+  
 end
 
 # Note: there is no need for getter methods for the non-value classes
@@ -240,11 +351,13 @@ class Intersect < GeometryExpression
 
   def preprocess_prog
     # return a new instance of the class which is the result of preprocessing self
-    self
+    Intersect.new(@e1.preprocess_prog, @e2.preprocess_prog)
   end
   
   def eval_prog (env)
-    self
+    v1 = @e1.eval_prog(env)
+    v2 = @e2.eval_prog(env)
+    v1.intersect(v2)
   end
 end
 
