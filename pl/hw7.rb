@@ -78,27 +78,31 @@ class NoPoints < GeometryValue
   def eval_prog env 
     self # all values evaluate to self
   end
+  
   def preprocess_prog
     self # no pre-processing to do here
   end
+  
   def shift(dx,dy)
     self # shifting no-points is no-points
   end
+  
   def intersect other
     other.intersectNoPoints self # will be NoPoints but follow double-dispatch
   end
+  
   def intersectPoint p
     self # intersection with point and no-points is no-points
   end
+  
   def intersectLine line
     self # intersection with line and no-points is no-points
   end
+  
   def intersectVerticalLine vline
     self # intersection with line and no-points is no-points
   end
-  # if self is the intersection of (1) some shape s and (2) 
-  # the line containing seg, then we return the intersection of the 
-  # shape s and the seg.  seg is an instance of LineSegment
+  
   def intersectWithSegmentAsLineResult seg
     self
   end
@@ -157,11 +161,18 @@ class Point < GeometryValue
     end
   end
   
-  # if self is the intersection of (1) some shape s and (2) 
-  # the line containing seg, then we return the intersection of the 
-  # shape s and the seg.  seg is an instance of LineSegment
   def intersectWithSegmentAsLineResult seg
-    seg.intersectPoint self
+    if inbetween(@x, seg.x1, seg.x2) and inbetween(@y, seg.y1, seg.y2)
+      Point.new(@x, @y)
+    else 
+      NoPoints.new
+    end
+  end
+  
+  def inbetween (v, end1, end2)
+    v1 = (end1 - GeometryExpression::Epsilon <= v) and (v <= end2 + GeometryExpression::Epsilon)
+    v2 = (end2 - GeometryExpression::Epsilon <= v) and (v <= end1 + GeometryExpression::Epsilon)
+    v1 or v2
   end
 end
 
@@ -183,7 +194,6 @@ class Line < GeometryValue
   end
   
   def shift(dx,dy)
-    # Line (m, b) => Line (m, b + deltaY - m*deltaX)
     Line.new(@m, @b + dy - @m*dx)
   end
   
@@ -192,7 +202,7 @@ class Line < GeometryValue
   end
   
   def intersectPoint p
-    p.intersect self
+    p.intersectLine self
   end
   
   def intersectLine line
@@ -213,11 +223,9 @@ class Line < GeometryValue
     Point.new(vline.x, @m * vline.x + @b)
   end
   
-  # if self is the intersection of (1) some shape s and (2) 
-  # the line containing seg, then we return the intersection of the 
-  # shape s and the seg.  seg is an instance of LineSegment
+    # The segment itself is the result if intersecting v with the segmentAsLine results in a Line
   def intersectWithSegmentAsLineResult seg
-    seg.intersectLine self
+    seg
   end
 end
 
@@ -262,11 +270,9 @@ class VerticalLine < GeometryValue
     end
   end
   
-  # if self is the intersection of (1) some shape s and (2) 
-  # the line containing seg, then we return the intersection of the 
-  # shape s and the seg.  seg is an instance of LineSegment
+  # The segment itself is the result if intersecting v with the segmentAsLine results in a VerticalLine
   def intersectWithSegmentAsLineResult seg
-    seg.intersectVerticalLine self
+    seg
   end
 end
 
@@ -311,32 +317,67 @@ class LineSegment < GeometryValue
   def shift(dx,dy)
     LineSegment.new(@x1 + dx, @y1 + dy, @x2 + dx, @y2 + dy)
   end
-  
-  # some helper methods that may be generally useful
-  # def real_close(r1,r2) 
-  #     (r1 - r2).abs < GeometryExpression::Epsilon
-  # end
-  # 
-  # def real_close_point(x1,y1,x2,y2) 
-  #     real_close(x1,x2) && real_close(y1,y2)
-  # end
-  
+
   def intersect other
     other.intersectLineSegment self
   end
   
   def intersectPoint p
-    self
+    p.intersectLineSegment self
   end
   
   def intersectLine line
-    self
+    line.intersectLineSegment self
   end
   
   def intersectVerticalLine vline
-    self
+    vline.intersectLineSegment self
   end
   
+  def intersectWithSegmentAsLineResult seg2
+    # The segment itself is the result if intersecting v with the segmentAsLine results in a VerticalLine
+    if real_close(@x1, @x2)
+      #(* the segments are on a vertical line *)
+      #(* let segment a start at or below start of segment b *)
+      if @y1 < seg2.y1
+        aXstart,aYstart,aXend,aYend = @x1,@y1,@x2,@y2
+        bXstart,bYstart,bXend,bYend = seg2.x1,seg2.y1,seg2.x2,seg2.y2
+      else
+        aXstart,aYstart,aXend,aYend = seg2.x1,seg2.y1,seg2.x2,seg2.y2
+        bXstart,bYstart,bXend,bYend = @x1,@y1,@x2,@y2
+      end
+
+      if real_close(aYend, bYstart)
+        Point.new(aXend, aYend) #(* just touching *)
+      elsif aYend < bYstart
+        NoPoints.new #(* disjoint *)
+      elsif aYend > bYend
+        LineSegment.new(bXstart,bYstart,bXend,bYend) #(* b inside a *)
+      else 
+        LineSegment.new(bXstart,bYstart,aXend,aYend) #(* overlapping *)
+      end
+    else 
+      #(* the segments are on a (non-vertical) line *)
+      #(* let segment a start at or to the left of start of segment b *)
+      if @x1 < seg2.x1
+        aXstart,aYstart,aXend,aYend = @x1,@y1,@x2,@y2
+        bXstart,bYstart,bXend,bYend = seg2.x1,seg2.y1,seg2.x2,seg2.y2
+      else
+        aXstart,aYstart,aXend,aYend = seg2.x1,seg2.y1,seg2.x2,seg2.y2
+        bXstart,bYstart,bXend,bYend = @x1,@y1,@x2,@y2
+      end
+
+      if real_close(aXend, bXstart)
+        Point.new(aXend,aYend) #(* just touching *)
+      elsif aXend < bXstart
+        NoPoints.new #(* disjoint *)
+      elsif aXend > bXend
+        LineSegment.new(bXstart,bYstart,bXend,bYend) #(* b inside a *)
+      else 
+        LineSegment.new(bXstart,bYstart,aXend,aYend) #(* overlapping *)          
+      end
+    end
+  end
 end
 
 # Note: there is no need for getter methods for the non-value classes
@@ -377,7 +418,8 @@ class Let < GeometryExpression
 
   def eval_prog (env)
     # add e1 to env and call eval on e2 with the new env
-    env.push([@s, @e1]) 
+    result = env.delete_if {|pair| pair[0] == @s}
+    env.push([@s, @e1])
     @e2.eval_prog(env)
   end
 end
